@@ -1,0 +1,44 @@
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QLineEdit>
+#include <QTextEdit>
+#include <QDateEdit>
+#include <QPushButton>
+#include <QMessageBox>
+void MainWindow::addButton()
+{
+    QDialog dialog(this);
+    dialog.setWindowTitle("Добавить задачу");
+    QVBoxLayout layout(&dialog);
+
+    QLineEdit titleEdit;
+    titleEdit.setPlaceholderText("Название задачи");
+    layout.addWidget(&titleEdit);
+
+    QTextEdit descriptionEdit;
+    descriptionEdit.setPlaceholderText("Описание задачи");
+    layout.addWidget(&descriptionEdit);
+
+    QDateEdit dateEdit;
+    dateEdit.setCalendarPopup(true);
+    layout.addWidget(&dateEdit);
+
+    QPushButton addButton("Добавить");
+    layout.addWidget(&addButton);
+
+    connect(&addButton, &QPushButton::clicked, [&]() {
+        QString title = titleEdit.text().trimmed();
+        QString description = descriptionEdit.toPlainText().trimmed();
+        QDate date = dateEdit.date();
+
+        QListWidgetItem *newItem = new QListWidgetItem(title);
+        newItem->setData(Qt::UserRole, description);  
+        newItem->setData(Qt::UserRole + 1, date); 
+
+        ui->tasksListWidget->addItem(newItem);
+
+        dialog.accept();
+    });
+
+    dialog.exec();
+}
