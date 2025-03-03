@@ -6,29 +6,35 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>598</height>
+    <width>573</width>
+    <height>288</height>
    </rect>
+  </property>
+  <property name="mouseTracking">
+   <bool>false</bool>
+  </property>
+  <property name="tabletTracking">
+   <bool>false</bool>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background-color:white</string>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QListWidget" name="tasksListWidget"/>
+     <widget class="QListWidget" name="tasksListWidget">
+      <property name="styleSheet">
+       <string notr="true">background-color:OldLace</string>
+      </property>
+     </widget>
     </item>
     <item>
      <widget class="QPushButton" name="addTaskButton">
       <property name="text">
        <string>Добавить задачу</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="deleteTaskButton">
-      <property name="text">
-       <string>Удалить задачу</string>
       </property>
      </widget>
     </item>
@@ -39,6 +45,13 @@
       </property>
      </widget>
     </item>
+    <item>
+     <widget class="QPushButton" name="deleteTaskButton">
+      <property name="text">
+       <string>Удалить задачу</string>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -46,8 +59,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>18</height>
+     <width>573</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>

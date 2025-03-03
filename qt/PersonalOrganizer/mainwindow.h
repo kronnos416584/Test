@@ -4,9 +4,7 @@
 #include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
-namespace Ui {
-class MainWindow;
-}
+namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
@@ -18,14 +16,13 @@ public:
     ~MainWindow();
 
 private slots:
-    void addTask();
-    void deleteTask();
-    void showTaskDetails();
+    void addButton();
+
+    void deleteButton();
+
+    void showDetailsButton();
 
 private:
     Ui::MainWindow *ui;
-    void loadTasks();
-    void saveTasks();
-
 };
 #endif // MAINWINDOW_H
