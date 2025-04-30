@@ -7,3 +7,109 @@
 Hello,World!!!
 </body>
 </html>
+Пункт1
+
+1.net user suser "Пароль"
+2.netsh advfirewall firewall add rule name="Для oracle" dir=in action=allow protocol=TCP localport=1521
+3.net user Oracle /add
+4.net user Oracle "Пароль"
+5.xcopy /y /o /e "\\10.24.91.10\dsr\*(тут табаем нужные файлы и по одному качаем так быстрее)*" "C:\dsr"
+6.mkdir C:\DB 
+mkdir C:\DB\Oracle 
+7.powershell
+Expand-Archive C:\dsr\winx64_12201_database.zip -DestinationPath C:\DB\Oracle
+8.cd C:\DB\Oracle\database
+start setup.exe
+
+Пункт2
+1.mkdir C:\Users\Oracle\RecoveryArea
+
+2.wmic logicaldisk get size,freespace,caption
+
+3.sqlplus sys/... as sysdba
+show parameter recov;
+alter system set db_recovery_file_dest_size=12G;
+alter system set db_recovery_file_dest =’C:\Users\Oracle\RecoveryArea’;
+select log_mode from v$database;
+
+4.shutdown immediate;
+startup mount;
+alter database archivelog;
+alter database open;
+
+5.rman target sys/...
+CONFIGURE RETENTION POLICY TO REDUNDANCY 4;
+report obsolete;
+delete noprompt obsolete;
+
+6.В папке RecoveryArea
+создать файл rman_backup.bat
+rman target / cmdfile=C:\Users\Oracle\RecoveryArea\rman_commands.rman
+создать файл rman_commands.rman
+BACKUP FULL DATABASE TAG "FULL_DATABASE_BACKUP" PLUS ARCHIVELOG TAG
+"FULL_ARCHIVELOGS_BACKUP";
+DELETE NOPROMPT OBSOLETE;
+
+7.sc config OracleJobSchedulerGELICH start= auto
+sc start OracleJobSchedulerGELICH
+sc query OracleJobSchedulerGELICH
+
+8.SELECT * FROM v$recovery_file_dest; проверка места.
+SELECT job_name, enabled, state FROM user_scheduler_jobs WHERE job_name = 'RMAN_BACKUP_JOB_3MIN';
+
+select start_time as "Data", status as "Result" from v$rman_backup_job_details order by 1 desc;
+
+SELECT *
+ FROM DBA_SCHEDULER_JOB_RUN_DETAILS
+ WHERE job_name = 'RMAN_BACKUP_JOB_3MIN'
+ ORDER BY LOG_ID desc;
+
+
+9. Создание джобов
+BEGIN
+DBMS_SCHEDULER.CREATE_JOB (
+job_name => 'RMAN_BACKUP_JOB_3MIN',
+job_type => 'EXECUTABLE',
+job_action => 'C:\Users\Oracle\RecoveryArea\rman_backup.bat',
+start_date => SYSTIMESTAMP,
+repeat_interval => 'FREQ=MINUTELY; INTERVAL=3',
+enabled => TRUE);
+END;
+--'FREQ=DAILY; BYHOUR=2'
+BEGIN
+ DBMS_SCHEDULER.DROP_JOB(job_name => 'RMAN_BACKUP_JOB_3MIN', force => TRUE);
+END;
+BEGIN
+ DBMS_SCHEDULER.run_JOB(job_name => 'RMAN_BACKUP_JOB_3MIN');
+END;
+
+
+10.Для времени .создадим таблицу. создаем дамп
+rman target /
+backup database;
+sqlplus sys as sysdba
+shutdown immediate;
+startup mount;
+rman target /
+run { 
+	set until time "TO_DATE('2024-12-06 11:17:00', 'YYYY-MM-DD HH24:MI:SS')"; 
+	restore database;
+	recover database; 
+};
+alter database open resetlogs;
+
+для восстановление других бэкапов.
+shutdown immediate;
+startup mount;
+rman target /
+LIST INCARNATION OF DATABASE;
+RESET DATABASE TO INCARNATION <Inc Key предыдущего бэкапа>;
+
+
+11. Если ошибка при запуске rman.bat
+Выполнить перекрестную проверку и удалить неактуальные записи:
+RMAN> DELETE FORCE NOPROMPT OBSOLETE DEVICE TYPE DISK;
+RMAN> DELETE FORCE NOPROMPT ARCHIVELOG ALL;
+RMAN> DELETE FORCE NOPROMPT BACKUP;
+RMAN> CROSSCHECK BACKUP;
+RMAN> DELETE EXPIRED BACKUP;
